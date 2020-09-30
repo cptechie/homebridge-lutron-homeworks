@@ -1,16 +1,55 @@
 {
-  "pluginAlias": "LutronHomeworks",
-  "pluginType": "platform",
-  "singular": true,
-  "schema": {
-    "type": "object",
-    "properties": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "required": true,
-        "default": "Example Dynamic Platform"
-      }
-    }
-  }
+   "pluginAlias":"LutronHomeworks",
+   "pluginType":"platform",
+   "singular":true,
+   "schema":{
+      "$schema":"http://json-schema.org/draft-07/schema",
+      "$id":"http://example.com/example.json",
+      "type":"object",
+      "title":"The root schema",
+      "description":"The root schema comprises the entire JSON document.",
+      "default":{
+         
+      },
+      "examples":[
+         {
+            "hostname":"192.168.1.XX",
+            "ssl":false
+         }
+      ],
+      "required":[
+         "name",
+         "hostname",
+         "ssl"
+      ],
+      "properties":{
+         "name":{
+            "title":"Name",
+            "type":"string",
+            "required":true,
+            "default":"Lutron Homeworks"
+         },
+         "hostname":{
+            "$id":"#/properties/hostname",
+            "type":"string",
+            "title":"Hostname/IP",
+            "description":"Hostname or IP of Homeworks Illumination",
+            "default":"",
+            "examples":[
+               "192.168.1.XX"
+            ]
+         },
+         "ssl":{
+            "$id":"#/properties/ssl",
+            "type":"boolean",
+            "title":"SSL",
+            "description":"Select to use HTTPS for connection",
+            "default":false,
+            "examples":[
+               false, true
+            ]
+         }
+      },
+      "additionalProperties":true
+   }
 }
