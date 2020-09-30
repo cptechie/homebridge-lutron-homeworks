@@ -78,18 +78,18 @@ export class LutronHomeworksPlatformAccessory {
      * the `updateCharacteristic` method.
      * 
      */
-  //   let motionDetected = false;
-  //   setInterval(() => {
-  //     // EXAMPLE - inverse the trigger
-  //     motionDetected = !motionDetected;
+    //   let motionDetected = false;
+    //   setInterval(() => {
+    //     // EXAMPLE - inverse the trigger
+    //     motionDetected = !motionDetected;
 
-  //     // push the new value to HomeKit
-  //     motionSensorOneService.updateCharacteristic(this.platform.Characteristic.MotionDetected, motionDetected);
-  //     motionSensorTwoService.updateCharacteristic(this.platform.Characteristic.MotionDetected, !motionDetected);
+    //     // push the new value to HomeKit
+    //     motionSensorOneService.updateCharacteristic(this.platform.Characteristic.MotionDetected, motionDetected);
+    //     motionSensorTwoService.updateCharacteristic(this.platform.Characteristic.MotionDetected, !motionDetected);
 
-  //     this.platform.log.debug('Triggering motionSensorOneService:', motionDetected);
-  //     this.platform.log.debug('Triggering motionSensorTwoService:', !motionDetected);
-  //   }, 10000);
+    //     this.platform.log.debug('Triggering motionSensorOneService:', motionDetected);
+    //     this.platform.log.debug('Triggering motionSensorTwoService:', !motionDetected);
+    //   }, 10000);
   }
 
   /**

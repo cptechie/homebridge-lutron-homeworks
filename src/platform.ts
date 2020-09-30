@@ -62,7 +62,7 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
 
     const req = https.request(options, res => {
       this.log.debug(`Keypad Request statusCode: ${res.statusCode}`);
-      var xml = '';
+      let xml = '';
       res.on('data', d => {
         xml += d;
       });
@@ -71,7 +71,7 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
         // this.log.info(xml);
 
         const convert = require('xml-js');
-        var result = JSON.parse(convert.xml2json(xml, {compact: true, spaces: 4}));
+        let result = JSON.parse(convert.xml2json(xml, {compact: true, spaces: 4}));
 
         // this.log.info(keypads);
         for (const device of result.Project.HWKeypad){
@@ -126,11 +126,11 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
     });
 
     req.on('error', error => {
-      this.log.error(error)
+      this.log.error(error);
     });
 
 
-    req.end()
+    req.end();
 
   }
 }
