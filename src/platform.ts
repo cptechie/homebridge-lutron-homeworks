@@ -51,21 +51,21 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
    */
   discoverDevices() {
 
-    const https = require(this.config.ssl ? 'https' : 'http')
-    const xml2js = require('xml2js').parseString;
+    const https = require(this.config.ssl ? 'https' : 'http');
+
     const options = {
       hostname: this.config.hostname,
       port: this.config.port,
       path: '/keypads.xml',
       method: 'GET'
-    }
+    };
 
     const req = https.request(options, res => {
-      this.log.debug(`Keypad Request statusCode: ${res.statusCode}`)
-      var xml = "";
+      this.log.debug(`Keypad Request statusCode: ${res.statusCode}`);
+      var xml = '';
       res.on('data', d => {
         xml += d;
-      })
+      });
 
       res.on('end', () => {
         // this.log.info(xml);
@@ -102,7 +102,7 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
             this.log.info('Adding new accessory:', device.Name._text);
 
             // create a new accessory
-            const accessory = new this.api.platformAccessory(device.Name._text, uuid)
+            const accessory = new this.api.platformAccessory(device.Name._text, uuid);
 
             // store a copy of the device object in the `accessory.context`
             // the `context` property can be used to store any data about the accessory you may need
@@ -123,11 +123,11 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
         }
       });
 
-    })
+    });
 
     req.on('error', error => {
       this.log.error(error)
-    })
+    });
 
 
     req.end()
