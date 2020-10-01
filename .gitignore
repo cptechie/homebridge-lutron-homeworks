@@ -1,3 +1,5 @@
+update.sh
+
 # Ignore compiled code
 dist
 
