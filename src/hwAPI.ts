@@ -5,6 +5,7 @@ export class HWAPI {
     private finished: boolean;
 
     constructor(
+        private readonly platform: LutronHomeworksPlatform,
         public readonly log: Logger,
         public readonly config: PlatformConfig
     ){
@@ -28,13 +29,7 @@ export class HWAPI {
         let func = this;
 
         parser.on('data', function(line){
-            if ( line.includes('RDL, ') ) {
-                results.push(line);
-            }
-
-            if (func.finished == true){
-                return results
-            }
+            this.platform.
         });
 
         port.write('RDL, [01:04:01:05:03]\n');

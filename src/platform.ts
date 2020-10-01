@@ -53,55 +53,9 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
    */
   discoverDevices() {
 
-    let hwapi = new HWAPI(this.log, this.config)
+    let hwapi = new HWAPI(this, this.log, this.config)
 
     let devices = hwapi.get_devices()
-
-    this.log.debug('Recived device list back from HWAPI of length', devices.length)
-
-    // this.log.info(keypads);
-    for (const device of devices){
-      this.log.debug('Starting initialization for device', device)
-
-      // generate a unique id for the accessory this should be generated from
-      // something globally unique, but constant, for example, the device serial
-      // number or MAC address
-      const uuid = this.api.hap.uuid.generate(device);
-
-      // see if an accessory with the same uuid has already been registered and restored from
-      // the cached devices we stored in the `configureAccessory` method above
-      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
-
-      if (existingAccessory) {
-        // the accessory already exists
-        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-
-        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-        // existingAccessory.context.device = device;
-        // this.api.updatePlatformAccessories([existingAccessory]);
-
-        // create the accessory handler for the restored accessory
-        // this is imported from `platformAccessory.ts`
-        new LutronHomeworksPlatformAccessory(this, existingAccessory);
-
-      } else {
-        // the accessory does not yet exist, so we need to create it
-        this.log.info('Adding new accessory:', device);
-
-        // create a new accessory
-        const accessory = new this.api.platformAccessory(device, uuid);
-
-        // store a copy of the device object in the `accessory.context`
-        // the `context` property can be used to store any data about the accessory you may need
-        accessory.context.address = device;
-
-        // create the accessory handler for the newly create accessory
-        // this is imported from `platformAccessory.ts`
-        new LutronHomeworksPlatformAccessory(this, accessory);
-
-        // link the accessory to your platform
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-      }
 
       // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
       // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
@@ -161,5 +115,48 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
       // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
     }
     */
+
+  addDevice(device: String){
+    this.log.debug('Starting initialization for device', device)
+
+      // generate a unique id for the accessory this should be generated from
+      // something globally unique, but constant, for example, the device serial
+      // number or MAC address
+      const uuid = this.api.hap.uuid.generate(device);
+
+      // see if an accessory with the same uuid has already been registered and restored from
+      // the cached devices we stored in the `configureAccessory` method above
+      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+
+      if (existingAccessory) {
+        // the accessory already exists
+        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+
+        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
+        // existingAccessory.context.device = device;
+        // this.api.updatePlatformAccessories([existingAccessory]);
+
+        // create the accessory handler for the restored accessory
+        // this is imported from `platformAccessory.ts`
+        new LutronHomeworksPlatformAccessory(this, existingAccessory);
+
+      } else {
+        // the accessory does not yet exist, so we need to create it
+        this.log.info('Adding new accessory:', device);
+
+        // create a new accessory
+        const accessory = new this.api.platformAccessory(device, uuid);
+
+        // store a copy of the device object in the `accessory.context`
+        // the `context` property can be used to store any data about the accessory you may need
+        accessory.context.address = device;
+
+        // create the accessory handler for the newly create accessory
+        // this is imported from `platformAccessory.ts`
+        new LutronHomeworksPlatformAccessory(this, accessory);
+
+        // link the accessory to your platform
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      }
   }
 }
