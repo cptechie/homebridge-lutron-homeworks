@@ -3,8 +3,10 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { LutronHomeworksPlatformAccessory } from './platformAccessory';
 
+import { HWAPI } from '.hwAPI'
+
 /**
- * HomebridgePlatform
+ * HomebridgePlatforms
  * This class is the main constructor for your plugin, this is where you should
  * parse the user config and discover/register accessories with Homebridge.
  */
@@ -51,86 +53,61 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
    */
   discoverDevices() {
 
-    const https = require(this.config.ssl ? 'https' : 'http');
+    let hwapi = new HWAPI(this.log, this.config)
 
-    const options = {
-      hostname: this.config.hostname,
-      port: this.config.port,
-      path: '/keypads.xml',
-      method: 'GET'
-    };
+    // this.log.info(xml);
+    /*
+    const convert = require('xml-js');
+    let result = JSON.parse(convert.xml2json(xml, {compact: true, spaces: 4}));
 
-    const req = https.request(options, res => {
-      this.log.debug(`Keypad Request statusCode: ${res.statusCode}`);
-      let xml = '';
-      res.on('data', d => {
-        xml += d;
-      });
+    // this.log.info(keypads);
+    for (const device of result.Project.HWKeypad){
 
-      res.on('end', () => {
-        // this.log.info(xml);
+      // generate a unique id for the accessory this should be generated from
+      // something globally unique, but constant, for example, the device serial
+      // number or MAC address
+      const uuid = this.api.hap.uuid.generate(device.Address._text);
 
-        const convert = require('xml-js');
-        let result = JSON.parse(convert.xml2json(xml, {compact: true, spaces: 4}));
+      // see if an accessory with the same uuid has already been registered and restored from
+      // the cached devices we stored in the `configureAccessory` method above
+      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
 
-        // this.log.info(keypads);
-        for (const device of result.Project.HWKeypad){
+      if (existingAccessory) {
+        // the accessory already exists
+        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
-          // generate a unique id for the accessory this should be generated from
-          // something globally unique, but constant, for example, the device serial
-          // number or MAC address
-          const uuid = this.api.hap.uuid.generate(device.Address._text);
+        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
+        // existingAccessory.context.device = device;
+        // this.api.updatePlatformAccessories([existingAccessory]);
 
-          // see if an accessory with the same uuid has already been registered and restored from
-          // the cached devices we stored in the `configureAccessory` method above
-          const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+        // create the accessory handler for the restored accessory
+        // this is imported from `platformAccessory.ts`
+        new LutronHomeworksPlatformAccessory(this, existingAccessory);
 
-          if (existingAccessory) {
-            // the accessory already exists
-            this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+      } else {
+        // the accessory does not yet exist, so we need to create it
+        this.log.info('Adding new accessory:', device.Name._text);
 
-            // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-            // existingAccessory.context.device = device;
-            // this.api.updatePlatformAccessories([existingAccessory]);
+        // create a new accessory
+        const accessory = new this.api.platformAccessory(device.Name._text, uuid);
 
-            // create the accessory handler for the restored accessory
-            // this is imported from `platformAccessory.ts`
-            new LutronHomeworksPlatformAccessory(this, existingAccessory);
+        // store a copy of the device object in the `accessory.context`
+        // the `context` property can be used to store any data about the accessory you may need
+        accessory.context.device = device;
+        accessory.context.address = device.Address._text;
+        accessory.context.name = device.Name._text;
 
-          } else {
-            // the accessory does not yet exist, so we need to create it
-            this.log.info('Adding new accessory:', device.Name._text);
+        // create the accessory handler for the newly create accessory
+        // this is imported from `platformAccessory.ts`
+        new LutronHomeworksPlatformAccessory(this, accessory);
 
-            // create a new accessory
-            const accessory = new this.api.platformAccessory(device.Name._text, uuid);
+        // link the accessory to your platform
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      }
 
-            // store a copy of the device object in the `accessory.context`
-            // the `context` property can be used to store any data about the accessory you may need
-            accessory.context.device = device;
-            accessory.context.address = device.Address._text;
-            accessory.context.name = device.Name._text;
-
-            // create the accessory handler for the newly create accessory
-            // this is imported from `platformAccessory.ts`
-            new LutronHomeworksPlatformAccessory(this, accessory);
-
-            // link the accessory to your platform
-            this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-          }
-
-          // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-          // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-        }
-      });
-
-    });
-
-    req.on('error', error => {
-      this.log.error(error);
-    });
-
-
-    req.end();
-
+      // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
+      // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    }
+    */
   }
 }
