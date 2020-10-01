@@ -3,7 +3,7 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { LutronHomeworksPlatformAccessory } from './platformAccessory';
 
-import { HWAPI } from '.hwAPI'
+import { HWAPI } from './hwAPI'
 
 /**
  * HomebridgePlatforms
