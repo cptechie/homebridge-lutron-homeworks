@@ -8,9 +8,6 @@
       "type":"object",
       "title":"The root schema",
       "description":"The root schema comprises the entire JSON document.",
-      "default":{
-         
-      },
       "examples":[
          {
             "serialPath":"/dev/ttyUSB0"
@@ -18,14 +15,12 @@
       ],
       "required":[
          "name",
-         "serialPath",
-         "ssl"
+         "serialPath"
       ],
       "properties":{
          "name":{
             "title":"Name",
             "type":"string",
-            "required":true,
             "default":"Lutron Homeworks"
          },
          "serialPath":{
@@ -33,10 +28,7 @@
             "type":"string",
             "title":"Serial Dev Path",
             "description":"Path to serial device",
-            "default":"/dev/ttyUSB0",
-            "examples":[
-               "/dev/ttyUSB0"
-            ]
+            "default":"/dev/ttyUSB0"
          }
       },
       "additionalProperties":true
