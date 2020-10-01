@@ -32,7 +32,7 @@ export class HWAPI {
                 results.push(line);
             }
 
-            if (func.finished){
+            if (func.finished == true){
                 return results
             }
         });
