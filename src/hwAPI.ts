@@ -19,7 +19,7 @@ export class HWAPI {
         const parser = new Readline()
         port.pipe(parser)
 
-        let results = []
+        let results = [] as any;
 
         parser.on('data', function(line){
             if ( line.includes('RDL, ') ) {
