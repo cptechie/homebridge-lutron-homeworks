@@ -1,4 +1,5 @@
 import { Logger, PlatformConfig } from 'homebridge';
+import { LutronHomeworksPlatform } from './platform'; 
 
 export class HWAPI {
     
