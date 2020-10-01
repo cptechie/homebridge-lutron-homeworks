@@ -30,7 +30,7 @@ export class HWAPI {
         let func = this;
 
         parser.on('data', function(line){
-            this.platform.
+            func.platform.addDevice(line)
         });
 
         port.write('RDL, [01:04:01:05:03]\n');
