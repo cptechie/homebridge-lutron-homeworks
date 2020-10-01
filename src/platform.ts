@@ -59,6 +59,7 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
 
     // this.log.info(keypads);
     for (const device of devices){
+      this.log.debug('Starting initialization for device', device)
 
       // generate a unique id for the accessory this should be generated from
       // something globally unique, but constant, for example, the device serial
