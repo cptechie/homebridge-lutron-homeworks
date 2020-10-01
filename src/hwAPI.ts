@@ -12,8 +12,7 @@ export class HWAPI {
         const SerialPort = require('serialport')
         const Readline = require('@serialport/parser-readline')
         const port = new SerialPort(this.config.serialPath, { 
-            baudRate: 115200,
-            parser: SerialPort.parsers.readline("\n")
+            baudRate: 115200
         })
 
         const parser = new Readline()
