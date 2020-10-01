@@ -13,13 +13,12 @@
       },
       "examples":[
          {
-            "hostname":"192.168.1.XX",
-            "ssl":false
+            "serialPath":"/dev/ttyUSB0"
          }
       ],
       "required":[
          "name",
-         "hostname",
+         "serialPath",
          "ssl"
       ],
       "properties":{
@@ -29,36 +28,14 @@
             "required":true,
             "default":"Lutron Homeworks"
          },
-         "hostname":{
-            "$id":"#/properties/hostname",
+         "serialPath":{
+            "$id":"#/properties/serialPath",
             "type":"string",
-            "title":"Hostname/IP",
-            "description":"Hostname or IP of Homeworks Illumination",
-            "default":"",
+            "title":"Serial Dev Path",
+            "description":"Path to serial device",
+            "default":"/dev/ttyUSB0",
             "examples":[
-               "192.168.1.XX"
-            ],
-            "format": "hostname"
-         },
-         "port":{
-            "$id":"#/properties/port",
-            "type":"integer",
-            "title":"Port",
-            "description":"Network port of Homeworks Illumination",
-            "default":80,
-            "examples":[
-               80, 443
-            ],
-            "maximum": 65535
-         },
-         "ssl":{
-            "$id":"#/properties/ssl",
-            "type":"boolean",
-            "title":"SSL",
-            "description":"Select to use HTTPS for connection",
-            "default":false,
-            "examples":[
-               false, true
+               "/dev/ttyUSB0"
             ]
          }
       },
