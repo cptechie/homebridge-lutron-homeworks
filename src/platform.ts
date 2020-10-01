@@ -57,6 +57,8 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
 
     let devices = hwapi.get_devices()
 
+    this.log.debug('Recived device list back from HWAPI of length', devices.length)
+
     // this.log.info(keypads);
     for (const device of devices){
       this.log.debug('Starting initialization for device', device)
