@@ -1,40 +1,26 @@
 import { Logger, PlatformConfig } from 'homebridge';
 import { LutronHomeworksPlatform } from './platform'; 
 
+
 export class HWAPI {
     
     private finished: boolean;
 
     constructor(
-        private readonly platform: LutronHomeworksPlatform,
-        public readonly log: Logger,
-        public readonly config: PlatformConfig
+      private readonly platform: LutronHomeworksPlatform,
+      public readonly log: Logger,
+      public readonly config: PlatformConfig,
     ){
-        this.finished = false
-        this.log.debug('Finished initializing hwAPI for device', this.config.serialPath);
+      this.finished = false;
+      this.log.debug('Finished initializing hwAPI for device', this.config.serialPath);
     }
 
     get_devices(){
-        const SerialPort = require('serialport')
-        const Readline = require('@serialport/parser-readline')
-        const port = new SerialPort(this.config.serialPath, { 
-            baudRate: 115200
-        })
+      const serialIo = require('serial-io');
+      const conn = serialIo.send(this.config.serialPath, 'RDL, [01:04:01:05:03]\n', {baudRate: 115200, timeoutRolling: 1000})
+        .then(response => this.log.debug(response));
 
-        const parser = new Readline()
-        port.pipe(parser)
+      this.log.debug('Type of variable, ', typeof conn);
 
-        let results = [] as any;
-
-        this.finished = false
-        let func = this;
-
-        parser.on('data', function(line){
-            func.platform.addDevice(line)
-        });
-
-        port.write('RDL, [01:04:01:05:03]\n');
-        this.finished = true
-        // let results = ['01:04:01:05:03']
     }
 }

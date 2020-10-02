@@ -9,20 +9,22 @@ import { LutronHomeworksPlatform } from './platform';
  */
 export class LutronHomeworksPlatformAccessory {
   private service: Service;
-
+  private address: string;
   /**
    * These are just used to create a working example
    * You should implement your own code to track the state of your accessory
    */
-  private exampleStates = {
+  private states = {
     On: false,
     Brightness: 100,
   };
 
   constructor(
     private readonly platform: LutronHomeworksPlatform,
-    private readonly accessory: PlatformAccessory
+    private readonly accessory: PlatformAccessory,
   ) {
+
+    this.address = accessory.context.address;
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -37,7 +39,7 @@ export class LutronHomeworksPlatformAccessory {
     // set the service name, this is what is displayed as the default name on the Home app
     // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.address);
-
+    
     // each service must implement at-minimum the "required characteristics" for the given service type
     // see https://developers.homebridge.io/#/service/Lightbulb
 
@@ -48,8 +50,8 @@ export class LutronHomeworksPlatformAccessory {
 
     // register handlers for the Brightness Characteristic
     this.service.getCharacteristic(this.platform.Characteristic.Brightness)
-      .on('set', this.setBrightness.bind(this));       // SET - bind to the 'setBrightness` method below
-
+      .on('set', this.setBrightness.bind(this))       // SET - bind to the 'setBrightness` method below
+      .on('get', this.getBrightness.bind(this));       // SET - bind to the 'setBrightness` method below
 
     /**
      * Creating multiple services of the same type.
@@ -99,9 +101,11 @@ export class LutronHomeworksPlatformAccessory {
   setOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
 
     // implement your own code to turn your device on/off
-    this.exampleStates.On = value as boolean;
+    this.states.On = value as boolean;
 
     this.platform.log.debug('Set Characteristic On ->', value);
+
+    this.platform.setState(this.address, this.states.On ? 100 : 0 );
 
     // you must call the callback function
     callback(null);
@@ -123,7 +127,7 @@ export class LutronHomeworksPlatformAccessory {
   getOn(callback: CharacteristicGetCallback) {
 
     // implement your own code to check if the device is on
-    const isOn = this.exampleStates.On;
+    const isOn = this.states.On;
 
     this.platform.log.debug('Get Characteristic On ->', isOn);
 
@@ -140,12 +144,25 @@ export class LutronHomeworksPlatformAccessory {
   setBrightness(value: CharacteristicValue, callback: CharacteristicSetCallback) {
 
     // implement your own code to set the brightness
-    this.exampleStates.Brightness = value as number;
+    this.states.Brightness = value as number;
 
     this.platform.log.debug('Set Characteristic Brightness -> ', value);
-
+    this.platform.setState(this.address, this.states.Brightness);
     // you must call the callback function
     callback(null);
+  }
+
+  getBrightness(callback: CharacteristicGetCallback) {
+
+    // implement your own code to check if the device is on
+    const brightness = this.states.Brightness;
+
+    this.platform.log.debug('Get Characteristic Brightness ->', brightness);
+
+    // you must call the callback function
+    // the first argument should be null if there were no errors
+    // the second argument should be the value to return
+    callback(null, brightness);
   }
 
 }
