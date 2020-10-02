@@ -107,6 +107,7 @@ export class LutronHomeworksPlatformAccessory {
 
     this.platform.setState(this.address, this.states.On ? 100 : 0 );
 
+    this.service.updateCharacteristic(this.platform.Characteristic.On, value);
     // you must call the callback function
     callback(null);
   }
@@ -148,6 +149,8 @@ export class LutronHomeworksPlatformAccessory {
 
     this.platform.log.debug('Set Characteristic Brightness -> ', value);
     this.platform.setState(this.address, this.states.Brightness);
+
+    this.service.updateCharacteristic(this.platform.Characteristic.Brightness, value);
     // you must call the callback function
     callback(null);
   }

@@ -253,7 +253,9 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
       });
     });
 
-    this.port.write('\r');
+    accessoryHandler.
+
+      this.port.write('\r');
   }
 
   processLine(line: string){
