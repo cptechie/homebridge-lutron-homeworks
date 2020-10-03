@@ -246,16 +246,8 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
 
   updateDevice(address: string, brightness: number){
     const accessoryHandler = this.devices[address];
+    accessoryHandler.updateState(brightness);
 
-    accessoryHandler.setOn( brightness !== 0 ? true : false, (error)=> {
-      accessoryHandler.setBrightness(brightness, (error)=> {
-        //pass
-      });
-    });
-
-    accessoryHandler.
-
-      this.port.write('\r');
   }
 
   processLine(line: string){
@@ -270,7 +262,7 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
         this.log.debug(address, ': Existing device. Updating characteristics.');
         this.updateDevice(address, brightness);
       } else{
-        this.log.debug(address, ' : New device. Adding to homebridge.');
+        this.log.debug(address, ': New device. Adding to homebridge.');
         this.addDevice(address, brightness);
       }
       // switch(this.state){

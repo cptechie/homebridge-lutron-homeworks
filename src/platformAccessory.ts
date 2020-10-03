@@ -168,4 +168,17 @@ export class LutronHomeworksPlatformAccessory {
     callback(null, brightness);
   }
 
+  updateState(brightness: number){
+    const isOn = (brightness !== 0) ? true : false;
+
+    this.platform.log.debug('Updating On charactereistic asynchronously to ', isOn);
+    this.service.updateCharacteristic(this.platform.Characteristic.On, isOn );
+    this.states.On = isOn as boolean;
+
+    this.platform.log.debug('Updating Brightness charactereistic asynchronously to ', isOn);
+    this.service.updateCharacteristic(this.platform.Characteristic.Brightness, brightness);
+    this.states.Brightness = brightness as number;
+    
+  }
+
 }
