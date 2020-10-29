@@ -105,7 +105,7 @@ export class LutronHomeworksPlatformAccessory {
 
     this.platform.log.debug('Set Characteristic On ->', value);
 
-    this.platform.setState(this.address, this.states.On ? this.states.Brightness : 0 );
+    this.platform.setState(this.address, this.states.On ? 100 : 0 );
 
     this.service.updateCharacteristic(this.platform.Characteristic.On, value);
     // you must call the callback function
@@ -147,7 +147,7 @@ export class LutronHomeworksPlatformAccessory {
     // implement your own code to set the brightness
     this.states.Brightness = value as number;
 
-    this.platform.log.debug('Set Characteristic Brightness ->', value);
+    this.platform.log.debug('Set Characteristic Brightness -> ', value);
     this.platform.setState(this.address, this.states.Brightness);
 
     this.service.updateCharacteristic(this.platform.Characteristic.Brightness, value);
@@ -171,11 +171,11 @@ export class LutronHomeworksPlatformAccessory {
   updateState(brightness: number){
     const isOn = (brightness !== 0) ? true : false;
 
-    this.platform.log.debug('Updating On charactereistic asynchronously to', isOn);
+    this.platform.log.debug('Updating On charactereistic asynchronously to ', isOn);
     this.service.updateCharacteristic(this.platform.Characteristic.On, isOn );
     this.states.On = isOn as boolean;
 
-    this.platform.log.debug('Updating Brightness charactereistic asynchronously to', isOn);
+    this.platform.log.debug('Updating Brightness charactereistic asynchronously to ', isOn);
     this.service.updateCharacteristic(this.platform.Characteristic.Brightness, brightness);
     this.states.Brightness = brightness as number;
     
