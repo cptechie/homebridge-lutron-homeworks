@@ -17,6 +17,8 @@ Got an old school Lutron Homeworks system? Don't want to pay $10,000+ to retrofi
 2. Install this plug-in using: `npm install -g homebridge-lutron-homeworks`
 3. Edit the plugin's settings in [homebridge-config-ui-x](https://github.com/oznu/homebridge-config-ui-x) in or update your configuration file manually. See example `config.json` snippet below.
 
+This plugin was tested in docker using oznu's [docker-homebridge](https://github.com/oznu/docker-homebridge) image running on an Ubuntu 20.04 host.
+
 # Configuration
 
 Minimum configuration sample (edit `~/.homebridge/config.json`):
