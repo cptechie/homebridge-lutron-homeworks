@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "private": false,
   "displayName": "Lutron Homeworks",
   "name": "homebridge-lutron-homeworks",
   "version": "0.1.0",
