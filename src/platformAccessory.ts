@@ -10,6 +10,7 @@ import { LutronHomeworksPlatform } from './platform';
 export class LutronHomeworksPlatformAccessory {
   private service: Service;
   private address: string;
+  private fadeTime: number;
   /**
    * These are just used to create a working example
    * You should implement your own code to track the state of your accessory
@@ -25,6 +26,7 @@ export class LutronHomeworksPlatformAccessory {
   ) {
 
     this.address = accessory.context.address;
+    this.fadeTime = accessory.context.fadeTime;
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -38,7 +40,7 @@ export class LutronHomeworksPlatformAccessory {
 
     // set the service name, this is what is displayed as the default name on the Home app
     // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.address);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.name);
     
     // each service must implement at-minimum the "required characteristics" for the given service type
     // see https://developers.homebridge.io/#/service/Lightbulb
@@ -105,7 +107,7 @@ export class LutronHomeworksPlatformAccessory {
 
     this.platform.log.debug('Set Characteristic On ->', value);
 
-    this.platform.setState(this.address, this.states.On ? this.states.Brightness : 0 );
+    this.platform.setState(this.address, this.states.On ? this.states.Brightness : 0, this.fadeTime );
 
     this.service.updateCharacteristic(this.platform.Characteristic.On, value);
     // you must call the callback function
@@ -148,7 +150,7 @@ export class LutronHomeworksPlatformAccessory {
     this.states.Brightness = value as number;
 
     this.platform.log.debug('Set Characteristic Brightness ->', value);
-    this.platform.setState(this.address, this.states.Brightness);
+    this.platform.setState(this.address, this.states.Brightness, this.fadeTime);
 
     this.service.updateCharacteristic(this.platform.Characteristic.Brightness, value);
     // you must call the callback function

@@ -3,8 +3,6 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { LutronHomeworksPlatformAccessory } from './platformAccessory';
 
-import { HWAPI } from './hwAPI';
-
 /**
  * HomebridgePlatforms
  * This class is the main constructor for your plugin, this is where you should
@@ -22,6 +20,9 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
   private port;
   private parser;
   private devices = {};
+  private namedDevices = {};
+  private deviceFadeTime = {};
+  private ignoreDevices;
 
   constructor(
     public readonly log: Logger,
@@ -30,10 +31,35 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
   ) {
     this.log.debug('Finished initializing platform:', this.config.name);
 
+    if ('namedDevices' in this.config) {
+      if (Array.isArray(this.config.namedDevices)) {
+        this.config.namedDevices.forEach(x => this.namedDevices[x.address] = x.name);
+      } else {
+        log.warn('Error processing namedDevices from config. Make sure namedDevices is of type Array.');
+      }
+    }
+
+    if ('deviceFadeTime' in this.config) {
+      if (Array.isArray(this.config.deviceFadeTime)) {
+        this.config.deviceFadeTime.forEach(x => this.deviceFadeTime[x.address] = x.fadeTime);
+      } else {
+        log.warn('Error processing deviceFadeTime from config. Make sure deviceFadeTime is of type Array.');
+      }
+    }
+
+    if ('ignoreDevices' in this.config) {
+      if (Array.isArray(this.config.ignoreDevices)) {
+        this.ignoreDevices = this.config.ignoreDevices;
+      } else {
+        log.warn('Error processing ignoreDevices from config. Make sure ignoreDevices is of type Array.');
+      }
+    } else{
+      this.ignoreDevices = [];
+    }
+
     this.SerialPort = require('serialport');
     this.Readline = require('@serialport/parser-readline');
-    this.port = new this.SerialPort(this.config.serialPath, { 
-      // parser: SerialPort.parsers.readline('\n'),
+    this.port = new this.SerialPort(this.config.serialPath, {
       baudRate: 115200,
     });
     this.parser = this.port.pipe(new this.Readline({ delimiter: '\r' }));
@@ -52,6 +78,10 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
         this.processLine(line);
       }
     });
+
+    if (this.config.loginRequired) {
+      this.port.write('LOGIN, ' + this.config.password + '\r');
+    }
 
     // When this event is fired it means Homebridge has restored all cached accessories from disk.
     // Dynamic Platform plugins should only register new accessories after this event was fired,
@@ -86,18 +116,18 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
 
     let a, b, c, d, e;
 
-    for(a = 1; a <= 16; a++ ){
-      for(b = 4; b <= 6; b++ ){
-        for(c = 1; c <= 4; c++ ){
-          for(d = 1; d <= 12; d++ ){
-            for(e = 1; e <= 4; e++ ){
-              const address = '[' 
-              + a.toString().padStart(2, '0') + ':'
-              + b.toString().padStart(2, '0') + ':'
-              + c.toString().padStart(2, '0') + ':'
-              + d.toString().padStart(2, '0') + ':'
-              + e.toString().padStart(2, '0') + ']';
-              
+    for (a = 1; a <= 16; a++) {
+      for (b = 4; b <= 6; b++) {
+        for (c = 1; c <= 4; c++) {
+          for (d = 1; d <= 12; d++) {
+            for (e = 1; e <= 4; e++) {
+              const address = '['
+                + a.toString().padStart(2, '0') + ':'
+                + b.toString().padStart(2, '0') + ':'
+                + c.toString().padStart(2, '0') + ':'
+                + d.toString().padStart(2, '0') + ':'
+                + e.toString().padStart(2, '0') + ']';
+
               this.port.write('RDL, ' + address + '\r');
             }
           }
@@ -109,7 +139,7 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
     // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
   }
 
-  addDevice(device: string, brightness: number){
+  addDevice(device: string, brightness: number) {
     this.log.debug('Starting initialization for device', device);
 
     // generate a unique id for the accessory this should be generated from
@@ -122,71 +152,100 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
     const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
 
     if (existingAccessory) {
+      if (this.ignoreDevices.includes(device)){
+        this.log.info('Found existing device ' + device + ' but is marked as an ignored device. Removing from system.');
+        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
+      } else{
       // the accessory already exists
-      this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+        this.log.debug('Existing device ' + device + ' not found in ignoreDevices. Adding to system.');
+        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
-      // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-      // existingAccessory.context.device = device;
-      // this.api.updatePlatformAccessories([existingAccessory]);
+        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
+        // existingAccessory.context.device = device;
+        // this.api.updatePlatformAccessories([existingAccessory]);
+        this.setContext(existingAccessory, device);
+        this.api.updatePlatformAccessories([existingAccessory]);
 
-      // create the accessory handler for the restored accessory
-      // this is imported from `platformAccessory.ts`
-      const accessoryHandler = new LutronHomeworksPlatformAccessory(this, existingAccessory);
-      accessoryHandler.updateState(brightness);
+        // create the accessory handler for the restored accessory
+        // this is imported from `platformAccessory.ts`
+        const accessoryHandler = new LutronHomeworksPlatformAccessory(this, existingAccessory);
+        accessoryHandler.updateState(brightness);
 
-      this.devices[device] = accessoryHandler;
-
-
+        this.devices[device] = accessoryHandler;
+      }
     } else {
+      if (this.ignoreDevices.includes(device)){
+        this.log.info('Found device ' + device + ' but is marked as an ignored device. Ignoring.');
+      } else{
       // the accessory does not yet exist, so we need to create it
-      this.log.info('Adding new accessory:', device);
+        this.log.debug('Existing device ' + device + ' not found in ignoreDevices. Adding to system.');
+        this.log.info('Adding new accessory:', device);
 
-      // create a new accessory
-      const accessory = new this.api.platformAccessory(device, uuid);
+        // create a new accessory
+        const accessory = new this.api.platformAccessory(device, uuid);
+        this.setContext(accessory, device);
+        // store a copy of the device object in the `accessory.context`
+        // the `context` property can be used to store any data about the accessory you may need
 
-      // store a copy of the device object in the `accessory.context`
-      // the `context` property can be used to store any data about the accessory you may need
-      accessory.context.address = device;
 
-      // create the accessory handler for the newly create accessory
-      // this is imported from `platformAccessory.ts`
-      const accessoryHandler = new LutronHomeworksPlatformAccessory(this, accessory);
+        // create the accessory handler for the newly create accessory
+        // this is imported from `platformAccessory.ts`
+        const accessoryHandler = new LutronHomeworksPlatformAccessory(this, accessory);
 
-      // link the accessory to your platform
-      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        // link the accessory to your platform
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
 
-      accessoryHandler.updateState(brightness);
+        accessoryHandler.updateState(brightness);
 
-      this.devices[device] = accessoryHandler;
+        this.devices[device] = accessoryHandler;
+      }
     }
   }
 
-  updateDevice(address: string, brightness: number){
+  updateDevice(address: string, brightness: number) {
     const accessoryHandler = this.devices[address];
     accessoryHandler.updateState(brightness);
 
   }
 
-  processLine(line: string){
-    if (line.includes('DL, ')){
+  processLine(line: string) {
+    if (line.includes('DL, ')) {
       this.log.debug('Recived line:', line);
       const sections = line.split(',');
       const address = sections[1].substring(2, sections[1].length - 1);
       const brightness = parseInt(sections[2]);
       this.log.debug(address + ',', brightness + '%');
 
-      if( address in this.devices){
+      if (address in this.devices) {
         this.log.debug(address, ': Existing device. Updating characteristics.');
         this.updateDevice(address, brightness);
-      } else{
+      } else {
         this.log.debug(address, ': New device. Adding to homebridge.');
         this.addDevice(address, brightness);
       }
     }
   }
 
-  setState(device: string, brightness: number){
-    this.port.write('FADEDIM, ' + brightness + ', 1, 0, [' + device + ']\r');
+  setState(device: string, brightness: number, fadeTime: number) {
+    this.port.write('FADEDIM, ' + brightness + ', ' + fadeTime + ', 0, [' + device + ']\r');
+  }
+
+  setContext(accessory: PlatformAccessory, device: string){
+    accessory.context.address = device;
+
+    if ( device in this.namedDevices ){
+      this.log.info('Setting name ' + this.namedDevices[device] + ' to device ' + device);
+      accessory.context.name = this.namedDevices[device];
+    } else{
+      accessory.context.name = device;
+    }
+
+    if ( device in this.deviceFadeTime ){
+      this.log.info('Setting custom fade time ' + this.deviceFadeTime[device] + ' to device ' + device);
+      accessory.context.fadeTime = this.deviceFadeTime[device];
+    } else{
+      accessory.context.fadeTime = this.config.defaultFadeTime;
+    }
   }
 }
 
