@@ -20,9 +20,9 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
   private port;
   private parser;
   private devices = {};
-  private namedDevices = {};
-  private deviceFadeTime = {};
+  private customDevices = {};
   private ignoreDevices;
+  private defaultFadeTime = 1;
 
   constructor(
     public readonly log: Logger,
@@ -31,21 +31,34 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
   ) {
     this.log.debug('Finished initializing platform:', this.config.name);
 
-    if ('namedDevices' in this.config) {
-      if (Array.isArray(this.config.namedDevices)) {
-        this.config.namedDevices.forEach(x => this.namedDevices[x.address] = x.name);
+    if ('customDevices' in this.config) {
+      if (Array.isArray(this.config.customDevices)) {
+        for( let i = 0; i < this.config.customDevices.length; i++){
+          if (typeof this.config.customDevices === 'object'){
+            const x = this.config.customDevices[i];
+            if('address' in x){
+              this.customDevices[x.address] = {};
+              if('name' in x){
+                this.customDevices[x.address]['name'] = x['name'];
+                this.log.debug('Found name ' + x['name'] + ' in customDevice ' + x.address);
+              }
+              if('fadeTime' in x){
+                this.customDevices[x.address]['fadeTime'] = x['fadeTime'];
+                this.log.debug('Found fadeTime ' + x['fadeTime'] + ' in customDevice ' + x.address);
+              }
+            } else{
+              this.log.warn('customDevice at index ' + i + 'does not contain an address. Values: ' + this.config.customDevices[i]);
+            }
+          } else{
+            this.log.warn('customDevice at index ' + i + 'is not an object. Values: ' + this.config.customDevices[i]);
+          }
+        }
       } else {
-        log.warn('Error processing namedDevices from config. Make sure namedDevices is of type Array.');
+        log.warn('Error processing customDevices from config. Make sure customDevices is of type Array.');
       }
     }
 
-    if ('deviceFadeTime' in this.config) {
-      if (Array.isArray(this.config.deviceFadeTime)) {
-        this.config.deviceFadeTime.forEach(x => this.deviceFadeTime[x.address] = x.fadeTime);
-      } else {
-        log.warn('Error processing deviceFadeTime from config. Make sure deviceFadeTime is of type Array.');
-      }
-    }
+    log.info(JSON.stringify(this.customDevices));
 
     if ('ignoreDevices' in this.config) {
       if (Array.isArray(this.config.ignoreDevices)) {
@@ -55,6 +68,14 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
       }
     } else{
       this.ignoreDevices = [];
+    }
+
+    if ('defaultFadeTime' in this.config){
+      if(typeof this.config.defaultFadeTime === 'number'){
+        this.defaultFadeTime = this.config.defaultFadeTime;
+      } else {
+        log.warn('Error processing defaultFadeTime from config. Make sure ignoreDevices is of type number.');
+      }
     }
 
     this.SerialPort = require('serialport');
@@ -233,19 +254,24 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
   setContext(accessory: PlatformAccessory, device: string){
     accessory.context.address = device;
 
-    if ( device in this.namedDevices ){
-      this.log.info('Setting name ' + this.namedDevices[device] + ' to device ' + device);
-      accessory.context.name = this.namedDevices[device];
-    } else{
-      accessory.context.name = device;
-    }
+    if ( device in this.customDevices ){
+      if('name' in this.customDevices[device]){
+        this.log.info('Setting name ' + this.customDevices[device]['name'] + ' to device ' + device);
+        accessory.context.name = this.customDevices[device]['name'];
+      } else{
+        this.log.info('Setting name not set for device ' + device + '. Setting default name.');
+        accessory.context.name = device;
+      }
 
-    if ( device in this.deviceFadeTime ){
-      this.log.info('Setting custom fade time ' + this.deviceFadeTime[device] + ' to device ' + device);
-      accessory.context.fadeTime = this.deviceFadeTime[device];
+      if('fadeTime' in this.customDevices[device]){
+        this.log.info('Setting custom fade time ' + this.customDevices[device]['fadeTime'] + ' to device ' + device);
+        accessory.context.fadeTime = this.customDevices[device]['fadeTime'];
+      } else{
+        this.log.info('Setting fadeTime not set for device ' + device + '. Setting default fadeTime.');
+        accessory.context.fadeTime = device;
+      }
     } else{
-      accessory.context.fadeTime = this.config.defaultFadeTime;
+      this.log.debug('Device ' + device + ' not found in customDevices. Setting default name and fadeTime.');
     }
   }
 }
-

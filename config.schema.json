@@ -33,17 +33,33 @@
                "functionBody": "return model.loginRequired === true;"
             }
          },
-         "namedDevices": {
-            "title": "Named Devices",
+         "defaultFadeTime": {
+            "title": "Default Fade Time",
+            "type": "integer",
+            "default": 1,
+            "minimum": 0,
+            "description": "This sets the default fade time in seconds for all devices"
+         },
+         "customDevices": {
+            "title": "Custom Devices",
             "items": {
                "properties": {
                   "address": {
                      "type": "string",
-                     "placeholder": "01:04:01:03:01"
+                     "placeholder": "01:04:01:03:01",
+                     "required": true,
+                     "description": "This is the address of the Lutron device inside Homeworks"
                   },
                   "name": {
                      "type": "string",
-                     "placeholder": "Living Room Lights"
+                     "placeholder": "Living Room Lights",
+                     "description": "This sets the name of this device in the HomeKit UI"
+                  },
+                  "fadeTime": {
+                     "type": "integer",
+                     "placeholder": 1,
+                     "minimum": 0,
+                     "description": "This sets the fade time for this specific device. This overwrites the specified default fade time."
                   }
                },
                "type": "object"
@@ -60,31 +76,6 @@
             },
             "type": "array",
             "description": "List of devices to not add into HomeKit"
-         },
-         "defaultFadeTime": {
-            "title": "Default Fade Time",
-            "type": "integer",
-            "default": 1,
-            "minimum": 0,
-            "description": "This sets the default fade time in seconds for all devices"
-         },
-         "deviceFadeTime":{
-            "title": "Device Specific Fade Time",
-            "items": {
-               "properties": {
-                  "address": {
-                     "type": "string",
-                     "placeholder": "01:04:01:03:01"
-                  },
-                  "fadeTime": {
-                     "type": "integer",
-                     "placeholder": 1
-                  }
-               },
-               "type": "object"
-            },
-            "type": "array",
-            "description": "Sets the fade time in seconds for specific devices, overwritting the specified default fade time"
          }
       },
       "additionalProperties": true
