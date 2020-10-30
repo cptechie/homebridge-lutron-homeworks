@@ -40,24 +40,24 @@
             "minimum": 0,
             "description": "This sets the default fade time in seconds for all devices"
          },
-         "customDevices": {
-            "title": "Custom Devices",
+         "devices": {
+            "title": "Devices",
             "items": {
                "properties": {
                   "address": {
                      "type": "string",
-                     "placeholder": "01:04:01:03:01",
+                     "placeholder": "<< 01:04:01:03:01 >>",
                      "required": true,
                      "description": "This is the address of the Lutron device inside Homeworks"
                   },
                   "name": {
                      "type": "string",
-                     "placeholder": "Living Room Lights",
+                     "placeholder": "<< NAME >>",
                      "description": "This sets the name of this device in the HomeKit UI"
                   },
                   "fadeTime": {
                      "type": "integer",
-                     "placeholder": 1,
+                     "placeholder": "<< 1 >>",
                      "minimum": 0,
                      "description": "This sets the fade time for this specific device. This overwrites the specified default fade time."
                   }
@@ -72,7 +72,7 @@
             "uniqueItems": true,
             "items": {
                "type": "string",
-               "placeholder": "01:04:01:03:01"
+               "placeholder": "<< 01:04:01:03:01 >>"
             },
             "type": "array",
             "description": "List of devices to not add into HomeKit"

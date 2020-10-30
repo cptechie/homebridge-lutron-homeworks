@@ -3,24 +3,18 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { LutronHomeworksPlatformAccessory } from './platformAccessory';
 
-/**
- * HomebridgePlatforms
- * This class is the main constructor for your plugin, this is where you should
- * parse the user config and discover/register accessories with Homebridge.
- */
 export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
 
-  // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
 
   private SerialPort;
   private Readline;
   private port;
   private parser;
+  private deviceHandlers = {};
   private devices = {};
-  private customDevices = {};
   private ignoreDevices;
   private defaultFadeTime = 1;
 
@@ -31,34 +25,32 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
   ) {
     this.log.debug('Finished initializing platform:', this.config.name);
 
-    if ('customDevices' in this.config) {
-      if (Array.isArray(this.config.customDevices)) {
-        for( let i = 0; i < this.config.customDevices.length; i++){
-          if (typeof this.config.customDevices === 'object'){
-            const x = this.config.customDevices[i];
-            if('address' in x){
-              this.customDevices[x.address] = {};
-              if('name' in x){
-                this.customDevices[x.address]['name'] = x['name'];
+    if ('devices' in this.config) {
+      if (Array.isArray(this.config.devices)) {
+        for (let i = 0; i < this.config.devices.length; i++) {
+          if (typeof this.config.devices === 'object') {
+            const x = this.config.devices[i];
+            if ('address' in x) {
+              this.devices[x.address] = {};
+              if ('name' in x) {
+                this.devices[x.address]['name'] = x['name'];
                 this.log.debug('Found name ' + x['name'] + ' in customDevice ' + x.address);
               }
-              if('fadeTime' in x){
-                this.customDevices[x.address]['fadeTime'] = x['fadeTime'];
+              if ('fadeTime' in x) {
+                this.devices[x.address]['fadeTime'] = x['fadeTime'];
                 this.log.debug('Found fadeTime ' + x['fadeTime'] + ' in customDevice ' + x.address);
               }
-            } else{
-              this.log.warn('customDevice at index ' + i + 'does not contain an address. Values: ' + this.config.customDevices[i]);
+            } else {
+              this.log.warn('customDevice at index ' + i + 'does not contain an address. Values: ' + this.config.devices[i]);
             }
-          } else{
-            this.log.warn('customDevice at index ' + i + 'is not an object. Values: ' + this.config.customDevices[i]);
+          } else {
+            this.log.warn('customDevice at index ' + i + 'is not an object. Values: ' + this.config.devices[i]);
           }
         }
       } else {
-        log.warn('Error processing customDevices from config. Make sure customDevices is of type Array.');
+        log.warn('Error processing devices from config. Make sure devices is of type Array.');
       }
     }
-
-    log.info(JSON.stringify(this.customDevices));
 
     if ('ignoreDevices' in this.config) {
       if (Array.isArray(this.config.ignoreDevices)) {
@@ -66,12 +58,12 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
       } else {
         log.warn('Error processing ignoreDevices from config. Make sure ignoreDevices is of type Array.');
       }
-    } else{
+    } else {
       this.ignoreDevices = [];
     }
 
-    if ('defaultFadeTime' in this.config){
-      if(typeof this.config.defaultFadeTime === 'number'){
+    if ('defaultFadeTime' in this.config) {
+      if (typeof this.config.defaultFadeTime === 'number') {
         this.defaultFadeTime = this.config.defaultFadeTime;
       } else {
         log.warn('Error processing defaultFadeTime from config. Make sure ignoreDevices is of type number.');
@@ -104,34 +96,19 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
       this.port.write('LOGIN, ' + this.config.password + '\r');
     }
 
-    // When this event is fired it means Homebridge has restored all cached accessories from disk.
-    // Dynamic Platform plugins should only register new accessories after this event was fired,
-    // in order to ensure they weren't added to homebridge already. This event can also be used
-    // to start discovery of new accessories.
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
-      // run the method to discover / register your devices as accessories
       this.discoverDevices();
     });
   }
 
-  /**
-   * This function is invoked when homebridge restores cached accessories from disk at startup.
-   * It should be used to setup event handlers for characteristics and update respective values.
-   */
   configureAccessory(accessory: PlatformAccessory) {
-    this.log.info('Loading accessory from cache:', accessory.displayName);
-
-    // add the restored accessory to the accessories cache so we can track if it has already been registered
+    this.log.debug('Loading accessory from cache:', accessory.context.name);
     this.accessories.push(accessory);
   }
 
-  /**
-   * This is an example method showing how to register discovered accessories.
-   * Accessories must only be registered once, previously created accessories
-   * must not be registered again to prevent "duplicate UUID" errors.
-   */
   discoverDevices() {
+    this.log.info('Starting device discovery');
     this.port.write('\r');
     this.port.write('DLMON\r');
 
@@ -155,76 +132,53 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
         }
       }
     }
-
-    // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-    // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    this.log.info('Finished device discovery');
   }
 
   addDevice(device: string, brightness: number) {
     this.log.debug('Starting initialization for device', device);
 
-    // generate a unique id for the accessory this should be generated from
-    // something globally unique, but constant, for example, the device serial
-    // number or MAC address
     const uuid = this.api.hap.uuid.generate(device);
-
-    // see if an accessory with the same uuid has already been registered and restored from
-    // the cached devices we stored in the `configureAccessory` method above
     const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
 
     if (existingAccessory) {
-      if (this.ignoreDevices.includes(device)){
-        this.log.info('Found existing device ' + device + ' but is marked as an ignored device. Removing from system.');
+      if (this.ignoreDevices.includes(device)) {
+        this.log.info('Found existing device %s but is marked as an ignored device. Removing from system.', existingAccessory.context.name);
         this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
-      } else{
-      // the accessory already exists
-        this.log.debug('Existing device ' + device + ' not found in ignoreDevices. Adding to system.');
-        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+      } else {
+        this.log.debug('Existing device %s not found in ignoreDevices. Adding to system.', existingAccessory.context.name);
+        this.log.debug('Restoring existing accessory from cache: %s', existingAccessory.context.name);
 
-        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-        // existingAccessory.context.device = device;
-        // this.api.updatePlatformAccessories([existingAccessory]);
         this.setContext(existingAccessory, device);
-        this.api.updatePlatformAccessories([existingAccessory]);
 
-        // create the accessory handler for the restored accessory
-        // this is imported from `platformAccessory.ts`
         const accessoryHandler = new LutronHomeworksPlatformAccessory(this, existingAccessory);
         accessoryHandler.updateState(brightness);
 
-        this.devices[device] = accessoryHandler;
+        this.deviceHandlers[device] = accessoryHandler;
       }
     } else {
-      if (this.ignoreDevices.includes(device)){
+      if (this.ignoreDevices.includes(device)) {
         this.log.info('Found device ' + device + ' but is marked as an ignored device. Ignoring.');
-      } else{
-      // the accessory does not yet exist, so we need to create it
+      } else {
         this.log.debug('Existing device ' + device + ' not found in ignoreDevices. Adding to system.');
         this.log.info('Adding new accessory:', device);
 
         // create a new accessory
         const accessory = new this.api.platformAccessory(device, uuid);
         this.setContext(accessory, device);
-        // store a copy of the device object in the `accessory.context`
-        // the `context` property can be used to store any data about the accessory you may need
 
-
-        // create the accessory handler for the newly create accessory
-        // this is imported from `platformAccessory.ts`
         const accessoryHandler = new LutronHomeworksPlatformAccessory(this, accessory);
-
-        // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
 
         accessoryHandler.updateState(brightness);
 
-        this.devices[device] = accessoryHandler;
+        this.deviceHandlers[device] = accessoryHandler;
       }
     }
   }
 
   updateDevice(address: string, brightness: number) {
-    const accessoryHandler = this.devices[address];
+    const accessoryHandler = this.deviceHandlers[address];
     accessoryHandler.updateState(brightness);
 
   }
@@ -237,7 +191,7 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
       const brightness = parseInt(sections[2]);
       this.log.debug(address + ',', brightness + '%');
 
-      if (address in this.devices) {
+      if (address in this.deviceHandlers) {
         this.log.debug(address, ': Existing device. Updating characteristics.');
         this.updateDevice(address, brightness);
       } else {
@@ -251,27 +205,40 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
     this.port.write('FADEDIM, ' + brightness + ', ' + fadeTime + ', 0, [' + device + ']\r');
   }
 
-  setContext(accessory: PlatformAccessory, device: string){
+  setContext(accessory: PlatformAccessory, device: string) {
     accessory.context.address = device;
 
-    if ( device in this.customDevices ){
-      if('name' in this.customDevices[device]){
-        this.log.info('Setting name ' + this.customDevices[device]['name'] + ' to device ' + device);
-        accessory.context.name = this.customDevices[device]['name'];
-      } else{
-        this.log.info('Setting name not set for device ' + device + '. Setting default name.');
+    if (device in this.devices) {
+      if ('name' in this.devices[device]) {
+        if (this.devices[device]['name'] !== accessory.context.name) {
+          this.log.info('Changing device %s name from %s -> %s', device, accessory.context.name, this.devices[device]['name']);
+          accessory.context.name = this.devices[device]['name'];
+        } else {
+          this.log.debug('Device %s name in context matches name in config. No action taken.');
+        }
+      } else {
+        this.log.debug('Setting name not set for device ' + device + '. Setting default name.');
         accessory.context.name = device;
       }
 
-      if('fadeTime' in this.customDevices[device]){
-        this.log.info('Setting custom fade time ' + this.customDevices[device]['fadeTime'] + ' to device ' + device);
-        accessory.context.fadeTime = this.customDevices[device]['fadeTime'];
-      } else{
-        this.log.info('Setting fadeTime not set for device ' + device + '. Setting default fadeTime.');
-        accessory.context.fadeTime = device;
+      if ('fadeTime' in this.devices[device]) {
+        if (this.devices[device]['fadeTime'] !== accessory.context.fadeTime) {
+          this.log.info('Changing device %s fade time from %s -> %s', 
+            device, accessory.context.fadeTime, this.devices[device]['fadeTime']);
+          accessory.context.fadeTime = this.devices[device]['fadeTime'];
+        } else {
+          this.log.debug('Device %s fadeTime in context matches name in config. No action taken.');
+        }
+      } else {
+        this.log.debug('Setting fadeTime not set for device ' + device + '. Setting default fadeTime.');
+        accessory.context.fadeTime = this.defaultFadeTime;
       }
-    } else{
-      this.log.debug('Device ' + device + ' not found in customDevices. Setting default name and fadeTime.');
+    } else {
+      this.log.debug('Device ' + device + ' not found in devices. Setting default name and fadeTime.');
+      accessory.context.name = device;
+      accessory.context.fadeTime = this.defaultFadeTime;
     }
+
+    this.api.updatePlatformAccessories([accessory]);
   }
 }
