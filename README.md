@@ -7,8 +7,9 @@ Got an old school Lutron Homeworks system? Don't want to pay $10,000+ to retrofi
 # Requirements
 
 1. Check environment compatiblity for [Node SerialPort](https://serialport.io/docs/guide-platform-support).
-2. Connnect host system to the Lutron Homeworks board using RS232.
+2. Connect host system to the Lutron Homeworks board using RS232.
 3. Check if you can successfully log into the system prior to installing the plugin (optional but recommended)
+   * See [here](https://github.com/cptechie/homebridge-lutron-homeworks/issues/6#issuecomment-827973256) for instructions on how to do this using **minicom**
 
 # Installation
 
@@ -79,7 +80,7 @@ Sample configuration with optional values (edit `~/.homebridge/config.json`):
 
 # What the heck are "Addresses"?
 
-Addresses are literally the address for a dimmer or switch. If you don't know the addresses of the devices on your Lutron Homework network, don't worry. This plugin will add all the discovered devices using the address as the device's name in HomeKit. You can then edit `config.json` as needed.
+Addresses are literally the address for a dimmer or switch. Don't worry if you don't know the addresses of the devices on your Lutron Homework network. This plugin will add all the discovered devices using the address as the device's name in HomeKit. You can then edit `config.json` as needed.
 
 # What does this plugin do?
 
