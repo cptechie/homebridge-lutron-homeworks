@@ -20,6 +20,24 @@
             "format": "json-pointer",
             "required": true
          },
+         "baudRate": {
+            "default": 115200,
+            "title": "Baud Rate",
+            "type": "integer",
+            "oneOf": [
+              { "title": "300", "enum": [300] },
+              { "title": "600", "enum": [600] },
+              { "title": "1200", "enum": [1200] },
+              { "title": "2400", "enum": [2400] },
+              { "title": "4800", "enum": [4800] },
+              { "title": "9600", "enum": [9600] },
+              { "title": "19200", "enum": [19200] },
+              { "title": "38400", "enum": [38400] },
+              { "title": "57600", "enum": [57600] },
+              { "title": "115200", "enum": [115200] }
+            ],
+            "required": true
+         },
          "loginRequired": {
             "title": "Password Required",
             "type": "boolean",

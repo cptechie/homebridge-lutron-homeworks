@@ -73,7 +73,7 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
     this.SerialPort = require('serialport');
     this.Readline = require('@serialport/parser-readline');
     this.port = new this.SerialPort(this.config.serialPath, {
-      baudRate: 115200,
+      baudRate: this.config.baudRate ? this.config.baudRate : 115200,
     });
     this.parser = this.port.pipe(new this.Readline({ delimiter: '\r' }));
 
