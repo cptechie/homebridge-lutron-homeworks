@@ -41,6 +41,7 @@ Required fields if your Lutron Homeworks system requires authentication:
 
 Optional fields:
 
+* `"buadRate"`: `some number` // optionally sets the buad rate of the serial port (defaults to 115200)
 * `"defaultFadeTime"`: `some number` // optional fade time in seconds to use for all discovered devices (defaults to 1 if omitted)
 * `"device"`: `[{ "address": "01:04:01:01:01", "name": "Formal Living", "fadeTime": 3 },...]` // optional list of devices with their name and specific fade times. This fade time overwrites defaultFadeTime.
 * `"ignoreDevices"`: `["01:04:01:01:02",...]` //optional list of devices to ignore and not add into HomeKit
