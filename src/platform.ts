@@ -2,6 +2,8 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { LutronHomeworksPlatformAccessory } from './platformAccessory';
+import { SerialPort } from 'serialport'
+import { ReadlineParser } from '@serialport/parser-readline'
 
 export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
@@ -9,8 +11,6 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
 
   public readonly accessories: PlatformAccessory[] = [];
 
-  private SerialPort;
-  private Readline;
   private port;
   private parser;
   private deviceHandlers = {};
@@ -70,12 +70,11 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
       }
     }
 
-    this.SerialPort = require('serialport');
-    this.Readline = require('@serialport/parser-readline');
-    this.port = new this.SerialPort(this.config.serialPath, {
-      baudRate: this.config.baudRate ? this.config.baudRate : 115200,
-    });
-    this.parser = this.port.pipe(new this.Readline({ delimiter: '\r' }));
+    this.port = new SerialPort({ path: this.config.serialPath as string, baudRate: this.config.baudRate as number ?? 115200 })
+    this.parser = new ReadlineParser()
+    this.port.pipe(this.parser)
+
+    this.parser = this.port.pipe(new ReadlineParser({ delimiter: '\r' }));
 
     this.parser.on('data', data => {
       const line = data.toString('utf8');
