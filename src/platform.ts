@@ -5,6 +5,8 @@ import { LutronHomeworksPlatformAccessory } from './platformAccessory';
 import { SerialPort } from 'serialport'
 import { ReadlineParser } from '@serialport/parser-readline'
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
@@ -106,7 +108,7 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
     this.accessories.push(accessory);
   }
 
-  discoverDevices() {
+  async discoverDevices() {
     this.log.info('Starting device discovery');
     this.port.write('\r');
     this.port.write('DLMON\r');
@@ -126,6 +128,7 @@ export class LutronHomeworksPlatform implements DynamicPlatformPlugin {
                 + e.toString().padStart(2, '0') + ']';
 
               this.port.write('RDL, ' + address + '\r');
+              await sleep(1);
             }
           }
         }
